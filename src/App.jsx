@@ -13,7 +13,7 @@ import ScrollToTop from "./Components/ScrollToTop";
 import JobReferrals from "./Components/jobs&Referral/JobReferrals";
 import { Toaster } from "react-hot-toast";
 import { UserProvider } from "./context/UserContext";
-import Profile from "./Components/profile/Profile";
+import Profile from "./Components/profile/profile";
 import Updatepwd from "./Components/forgotpassword";
 import JobDetails from "./Components/jobs&Referral/JobDetails";
 import Dashboard from "./Components/Dashboard";
