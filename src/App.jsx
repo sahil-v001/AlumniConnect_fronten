@@ -41,6 +41,43 @@ function App() {
 
   return (
     <div>
+      <UserProvider>
+        <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+        <Router>
+          <div className="min-h-screen bg-slate-50">
+            <Navbar />
+
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/updatepwd" element={<Updatepwd />} />
+              <Route path="/events">
+                <Route index element={<Events />} />
+                <Route path="register" element={<RegisterEventPage />} />
+                <Route path="agenda" element={<ViewAgendaPage />} />
+                <Route
+                  path="submit-proposal"
+                  element={<SubmitEventProposalPage />}
+                />
+                <Route path="guidelines" element={<HostGuidelinesPage />} />
+                <Route path="/events/:id" element={<EventDetails />} />
+                <Route
+                  path="/events/edit/:id"
+                  element={<SubmitEventProposalPage />}
+                />
+              </Route>
+              <Route path="/profile/:id" element={<UserProfile />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/jobs" element={<JobReferrals />} />
+              <Route path="/jobs/:id" element={<JobDetails />} />
+            </Routes>
+          </div>
+        </Router>
+      </UserProvider>
       {/* 3. PASS THE ACTUAL STATE VARIABLE */}
       <SocketContextProvider authUser={authUser}>
         <UserProvider>
@@ -64,18 +101,20 @@ function App() {
                   />
                   <Route path="guidelines" element={<HostGuidelinesPage />} />
                   <Route path="/events/:id" element={<EventDetails />} />
-                  <Route path="/events/edit/:id" element={<SubmitEventProposalPage />} />
+                  <Route
+                    path="/events/edit/:id"
+                    element={<SubmitEventProposalPage />}
+                  />
                 </Route>
-                <Route path="/profile/:id" element={<UserProfile/>} />
+                <Route path="/profile/:id" element={<UserProfile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/jobs" element={<JobReferrals />} />
                 <Route path="/jobs/:id" element={<JobDetails />} />
-                
+
                 {/* 4. ADD YOUR CHAT ROUTE HERE */}
                 <Route path="/chat" element={<ChatPage />} />
-                
               </Routes>
             </div>
           </Router>
