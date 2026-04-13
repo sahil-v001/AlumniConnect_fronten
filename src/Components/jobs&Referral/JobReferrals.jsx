@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import PostJob from "./PostJob";
 import { UserContext } from "../../context/UserContext";
-import API from "../../config";
 
 const ApiAutocomplete = ({ label, placeholder, apiType, onSelect }) => {
   const [query, setQuery] = useState("");
@@ -31,18 +30,18 @@ const ApiAutocomplete = ({ label, placeholder, apiType, onSelect }) => {
       try {
         let results = [];
         if (apiType === "location") {
-          const res = await API.get(
-            `https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=en&format=json`,
+          const res = await axios.get(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=en&format=json`
           );
           if (res.data.results) {
             results = res.data.results.map((p) => `${p.name}, ${p.country}`);
           }
         } else if (apiType === "job") {
-          const res = await API.get(
-            `https://api.datamuse.com/words?ml=${query}&max=5`,
+          const res = await axios.get(
+            `https://api.datamuse.com/words?ml=${query}&max=5`
           );
           results = res.data.map(
-            (i) => i.word.charAt(0).toUpperCase() + i.word.slice(1),
+            (i) => i.word.charAt(0).toUpperCase() + i.word.slice(1)
           );
         }
         setSuggestions(results);
@@ -73,9 +72,7 @@ const ApiAutocomplete = ({ label, placeholder, apiType, onSelect }) => {
       {isOpen && (
         <div className="absolute z-20 w-full bg-white border border-slate-200 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto">
           {isLoading ? (
-            <div className="p-3 text-center text-xs text-slate-400">
-              Loading...
-            </div>
+            <div className="p-3 text-center text-xs text-slate-400">Loading...</div>
           ) : suggestions.length > 0 ? (
             suggestions.map((item, idx) => (
               <div
@@ -91,9 +88,7 @@ const ApiAutocomplete = ({ label, placeholder, apiType, onSelect }) => {
               </div>
             ))
           ) : (
-            <div className="p-3 text-center text-xs text-slate-400">
-              No results.
-            </div>
+            <div className="p-3 text-center text-xs text-slate-400">No results.</div>
           )}
         </div>
       )}
@@ -120,16 +115,24 @@ const JobReferrals = () => {
     if (!token) return;
 
     try {
-      const res = await API.get(
-        `${import.meta.env.VITE_SERVER_DOMAIN}/api/jobs`,
-        {
-          headers: {
-            "x-auth-token": token,
-          },
-        },
-      );
+      const res = await axios.get(`${import.meta.env.VITE_SERVER_DOMAIN}/api/jobs`, {
+        headers: {
+          "x-auth-token": token
+        }
+      });
       if (Array.isArray(res.data)) setJobList(res.data);
-    } catch (error) {}
+    } catch (error) {
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        toast.error("Failed to load jobs");
+      }
+      // ----------------------------
+    }
   };
 
   useEffect(() => {
@@ -139,71 +142,62 @@ const JobReferrals = () => {
   const handleDelete = async (jobId) => {
     try {
       const token = localStorage.getItem("token");
-      await API.delete(
-        `${import.meta.env.VITE_SERVER_DOMAIN}/api/jobs/${jobId}`,
-        {
-          headers: {
-            "x-auth-token": token,
-          },
-        },
-      );
+      await axios.delete(`${import.meta.env.VITE_SERVER_DOMAIN}/api/jobs/${jobId}`, {
+        headers: {
+          "x-auth-token": token
+        }
+      });
       setJobList(jobList.filter((job) => job._id !== jobId));
       toast.success("Job deleted successfully");
     } catch (error) {
-      console.log(error);
-      toast.error(error.response?.data?.error || "Failed to delete job");
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        console.log(error);
+        toast.error(error.response?.data?.error || "Failed to delete job");
+      }
+      // ----------------------------
     }
   };
 
   // --- UPDATED FILTERING LOGIC ---
   const filteredJobs = jobList.filter((job) => {
-    const matchText = job.company
-      .toLowerCase()
-      .includes(textSearch.toLowerCase());
-
+    const matchText = job.company.toLowerCase().includes(textSearch.toLowerCase());
+    
     const matchRole =
       selectedRoles.length === 0 ||
-      selectedRoles.some((r) =>
-        job.role.toLowerCase().includes(r.toLowerCase()),
-      );
-
+      selectedRoles.some((r) => job.role.toLowerCase().includes(r.toLowerCase()));
+      
     const matchLocation =
       selectedLocations.length === 0 ||
       selectedLocations.some((l) =>
-        job.location.toLowerCase().includes(l.split(",")[0].toLowerCase()),
+        job.location.toLowerCase().includes(l.split(",")[0].toLowerCase())
       );
-
+      
     // NEW LOGIC: Check if the job has the selected skills
-    const matchSkills =
+    const matchSkills = 
       selectedSkills.length === 0 ||
-      selectedSkills.some((skill) =>
-        job.tags?.some((tag) =>
-          tag.toLowerCase().includes(skill.toLowerCase()),
-        ),
+      selectedSkills.some((skill) => 
+        job.tags?.some((tag) => tag.toLowerCase().includes(skill.toLowerCase()))
       );
 
     const matchReferral = !referralOnly || job.referralAvailable;
-
+    
     let isPosterSenior = true;
     if (user && job.batch) {
-      isPosterSenior = job.batch <= user.graduationYear;
+       isPosterSenior = job.batch <= user.graduationYear;
     }
 
     if (isAlumni) {
       // Added matchSkills to the return check
-      return (
-        matchText &&
-        matchRole &&
-        matchLocation &&
-        matchSkills &&
-        matchReferral &&
-        isPosterSenior
-      );
+      return matchText && matchRole && matchLocation && matchSkills && matchReferral && isPosterSenior;
     }
     // Added matchSkills to the return check
-    return (
-      matchText && matchRole && matchLocation && matchSkills && matchReferral
-    );
+    return matchText && matchRole && matchLocation && matchSkills && matchReferral;
   });
 
   if (showPostJob) {
@@ -241,7 +235,7 @@ const JobReferrals = () => {
               <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
                 Filters
               </h2>
-
+              
               <div className="mb-6">
                 <label className="block text-sm font-bold text-slate-700 mb-1">
                   Company Search
@@ -259,8 +253,7 @@ const JobReferrals = () => {
                 placeholder="Type role..."
                 apiType="job"
                 onSelect={(val) =>
-                  !selectedRoles.includes(val) &&
-                  setSelectedRoles([...selectedRoles, val])
+                  !selectedRoles.includes(val) && setSelectedRoles([...selectedRoles, val])
                 }
               />
               <div className="flex flex-wrap gap-2 mb-6">
@@ -270,13 +263,7 @@ const JobReferrals = () => {
                     className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 border border-blue-100"
                   >
                     {role}
-                    <button
-                      onClick={() =>
-                        setSelectedRoles(
-                          selectedRoles.filter((r) => r !== role),
-                        )
-                      }
-                    >
+                    <button onClick={() => setSelectedRoles(selectedRoles.filter((r) => r !== role))}>
                       ×
                     </button>
                   </span>
@@ -288,8 +275,7 @@ const JobReferrals = () => {
                 placeholder="Type city..."
                 apiType="location"
                 onSelect={(val) =>
-                  !selectedLocations.includes(val) &&
-                  setSelectedLocations([...selectedLocations, val])
+                  !selectedLocations.includes(val) && setSelectedLocations([...selectedLocations, val])
                 }
               />
               <div className="flex flex-wrap gap-2 mb-6">
@@ -299,13 +285,7 @@ const JobReferrals = () => {
                     className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 border border-emerald-100"
                   >
                     {loc.split(",")[0]}
-                    <button
-                      onClick={() =>
-                        setSelectedLocations(
-                          selectedLocations.filter((l) => l !== loc),
-                        )
-                      }
-                    >
+                    <button onClick={() => setSelectedLocations(selectedLocations.filter((l) => l !== loc))}>
                       ×
                     </button>
                   </span>
@@ -340,13 +320,7 @@ const JobReferrals = () => {
                     className="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 border border-purple-100"
                   >
                     {skill}
-                    <button
-                      onClick={() =>
-                        setSelectedSkills(
-                          selectedSkills.filter((s) => s !== skill),
-                        )
-                      }
-                    >
+                    <button onClick={() => setSelectedSkills(selectedSkills.filter((s) => s !== skill))}>
                       ×
                     </button>
                   </span>
@@ -355,9 +329,7 @@ const JobReferrals = () => {
               {/* --- END NEW SKILLS FILTER UI --- */}
 
               <label className="flex items-center justify-between cursor-pointer py-2 border-t border-slate-100 pt-4">
-                <span className="font-bold text-slate-700 text-sm">
-                  Referral Only
-                </span>
+                <span className="font-bold text-slate-700 text-sm">Referral Only</span>
                 <input
                   type="checkbox"
                   className="accent-blue-600 w-5 h-5"
@@ -390,25 +362,19 @@ const JobReferrals = () => {
                         {job.company[0]}
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-slate-900">
-                          {job.role}
-                        </h3>
+                        <h3 className="text-xl font-bold text-slate-900">{job.role}</h3>
                         <p className="text-blue-600 font-medium">
-                          {job.company} •{" "}
-                          <span className="text-slate-500 font-normal">
-                            {job.location}
-                          </span>
+                          {job.company} • <span className="text-slate-500 font-normal">{job.location}</span>
                         </p>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {job.tags &&
-                            job.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-slate-100 text-slate-600 rounded-md"
-                              >
-                                {tag}
-                              </span>
-                            ))}
+                          {job.tags && job.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-slate-100 text-slate-600 rounded-md"
+                            >
+                              {tag}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -418,21 +384,19 @@ const JobReferrals = () => {
                         <p className="text-sm font-semibold text-slate-800">
                           Posted by {job.postedBy}
                         </p>
-                        <p className="text-xs text-slate-500">
-                          Class of {job.batch}
-                        </p>
+                        <p className="text-xs text-slate-500">Class of {job.batch}</p>
                       </div>
                       <div className="flex gap-3 w-full md:w-auto">
                         {user && job.postedBy === user.fullName && (
-                          <button
+                          <button 
                             onClick={() => handleDelete(job._id)}
                             className="flex-1 md:flex-none bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-bold border border-red-100 hover:bg-red-100 transition-colors"
                           >
                             Delete
                           </button>
                         )}
-                        <button
-                          onClick={() => navigate(`/jobs/${job._id}`)}
+                        <button 
+                          onClick={() => navigate(`/jobs/${job._id}`)} 
                           className="flex-1 md:flex-none bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors"
                         >
                           Details
@@ -443,9 +407,7 @@ const JobReferrals = () => {
                 ))
               ) : (
                 <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
-                  <h3 className="text-xl font-bold text-slate-400">
-                    No jobs found
-                  </h3>
+                  <h3 className="text-xl font-bold text-slate-400">No jobs found</h3>
                   <p className="text-slate-400">Try adjusting your filters.</p>
                 </div>
               )}

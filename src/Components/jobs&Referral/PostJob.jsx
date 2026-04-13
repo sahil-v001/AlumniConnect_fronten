@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
+import { useNavigate } from "react-router-dom"; // <-- Added this import
 import toast from "react-hot-toast";
 import axios from "axios";
 import API from "../../config";
@@ -112,6 +113,7 @@ const ApiInput = ({
 
 const PostJob = ({ onBack }) => {
   const { user } = useContext(UserContext);
+  const navigate = useNavigate(); // <-- Initialize navigate for redirects
 
   const [formData, setFormData] = useState({
     role: "",
@@ -152,7 +154,9 @@ const PostJob = ({ onBack }) => {
       if (!token) {
         toast.error("Session expired or missing. Please log in again.");
         setIsSubmitting(false);
-        return;
+        navigate("/login"); // Force redirect if no token is found
+        return; 
+
       }
 
       const payload = {
@@ -174,14 +178,21 @@ const PostJob = ({ onBack }) => {
       toast.success("Job posted successfully!");
     } catch (error) {
       console.error("🚨 FULL AXIOS ERROR:", error);
+      
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else if (error.response) {
+        const errorMessage = error.response.data?.error || "Server returned an error";
 
-      if (error.response) {
-        const errorMessage =
-          error.response.data?.error || "Server returned an error";
         toast.error(`Error: ${errorMessage}`);
       } else {
         toast.error("Network Error: Could not connect to the server.");
       }
+      // ----------------------------
     } finally {
       setIsSubmitting(false);
     }

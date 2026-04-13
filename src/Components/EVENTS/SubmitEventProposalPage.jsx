@@ -59,8 +59,17 @@ const SubmitEventProposalPage = () => {
             logistics: event.logistics || [],
           });
         } catch (error) {
-          toast.error("Failed to load event for editing");
-          navigate("/events");
+          // --- NEW 401 CATCH BLOCK ---
+          if (error.response && error.response.status === 401) {
+            toast.error("Session expired. Please log in again.");
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            navigate("/login");
+          } else {
+            toast.error("Failed to load event for editing");
+            navigate("/events");
+          }
+          // ----------------------------
         }
       };
       fetchEvent();
@@ -112,7 +121,16 @@ const SubmitEventProposalPage = () => {
         navigate("/events");
       }
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to submit");
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.error || "Failed to submit");
+      }
+      // ----------------------------
     } finally {
       setLoading(false);
     }

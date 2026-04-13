@@ -32,8 +32,18 @@ const EventDetails = () => {
         );
         setEvent(eventRes.data);
       } catch (error) {
-        toast.error("Failed to load event details");
-        navigate("/events");
+        // --- NEW 401 CATCH BLOCK ---
+        if (error.response && error.response.status === 401) {
+          toast.error("Session expired. Please log in again.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user"); 
+          navigate("/login");
+        } else {
+          // Fallback for other errors (like 404 or 500)
+          toast.error("Failed to load event details");
+          navigate("/events");
+        }
+        // ----------------------------
       } finally {
         setLoading(false);
       }

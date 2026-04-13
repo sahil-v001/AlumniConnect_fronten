@@ -9,37 +9,33 @@ export const UserProvider = ({ children }) => {
   const isTokenExpired = (token) => {
     if (!token) return true;
     try {
-      // A JWT has 3 parts separated by a dot. The payload is the 2nd part (index 1).
-      // atob() decodes the base64 encoded string.
+      // A JWT has 3 parts. The payload is the 2nd part.
       const payloadBase64 = token.split('.')[1];
       const decodedJson = atob(payloadBase64);
       const decodedPayload = JSON.parse(decodedJson);
       
       // The 'exp' claim is in seconds. Date.now() is in milliseconds.
-      // So we multiply exp by 1000 to compare them properly.
       const expirationTime = decodedPayload.exp * 1000;
       
       return Date.now() > expirationTime;
     } catch (error) {
-      // If the token is malformed and fails to decode, treat it as expired
       return true;
     }
   };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token"); // Get the token from storage
+    const storedToken = localStorage.getItem("token");
 
     if (storedUser && storedToken) {
-      // Check if the token is still valid before logging them in
       if (isTokenExpired(storedToken)) {
-        console.log("Session expired. Logging out.");
-        logoutUser(); // Clears everything if the token is dead
+        console.log("Initial check: Session expired.");
+        logoutUser(); 
       } else {
-        setUser(JSON.parse(storedUser)); // Safe to log them in
+        setUser(JSON.parse(storedUser)); 
       }
-    } else {
-      // If there is a user but no token, something is wrong, clean it up
+    } else if (storedUser || storedToken) {
+      // Cleanup if only one piece of data exists
       logoutUser();
     }
   }, []);
@@ -62,12 +58,12 @@ export const UserProvider = ({ children }) => {
       createdAt: backendData.createdAt,
       connections: backendData.connections || [],
       notifications: backendData.notifications || [], 
-      pendingConnections: backendData.pendingConnections || [], // <--- ADD THIS LINE
+      pendingConnections: backendData.pendingConnections || [],
+      vouchRequests: backendData.vouchRequests || [], // Added for completeness
     };
 
     setUser(safeUserData);
     localStorage.setItem("user", JSON.stringify(safeUserData));
-    // MAKE SURE you are passing the token into loginUser when you call it in your Login component!
     if (token) {
         localStorage.setItem("token", token);
     }
@@ -77,6 +73,8 @@ export const UserProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token"); 
+    // This ensures that any component calling logoutUser() 
+    // resets the entire app state and storage.
   };
 
   return (

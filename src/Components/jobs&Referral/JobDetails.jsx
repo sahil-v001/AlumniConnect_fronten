@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { UserContext } from "../../context/UserContext";
-import API from "../../config";
 
 const JobDetails = () => {
   const { id } = useParams();
@@ -16,18 +15,24 @@ const JobDetails = () => {
     const fetchJobDetails = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await API.get(
-          `${import.meta.env.VITE_SERVER_DOMAIN}/api/jobs/${id}`,
-          {
-            headers: {
-              "x-auth-token": token,
-            },
+        const res = await axios.get(`${import.meta.env.VITE_SERVER_DOMAIN}/api/jobs/${id}`, {
+          headers: {
+            "x-auth-token": token,
           },
-        );
+        });
         setJob(res.data);
       } catch (error) {
-        toast.error("Failed to load job details.");
-        navigate("/jobs");
+        // --- NEW 401 CATCH BLOCK ---
+        if (error.response && error.response.status === 401) {
+          toast.error("Session expired. Please log in again.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        } else {
+          toast.error("Failed to load job details.");
+          navigate("/jobs"); 
+        }
+        // ----------------------------
       } finally {
         setIsLoading(false);
       }
@@ -39,24 +44,31 @@ const JobDetails = () => {
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem("token");
-      await API.delete(`${import.meta.env.VITE_SERVER_DOMAIN}/api/jobs/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_SERVER_DOMAIN}/api/jobs/${id}`, {
         headers: {
-          "x-auth-token": token,
-        },
+          "x-auth-token": token
+        }
       });
       toast.success("Job deleted successfully");
       navigate("/jobs");
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to delete job");
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.error || "Failed to delete job");
+      }
+      // ----------------------------
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-500 font-medium animate-pulse">
-          Loading job details...
-        </div>
+        <div className="text-slate-500 font-medium animate-pulse">Loading job details...</div>
       </div>
     );
   }
@@ -91,14 +103,10 @@ const JobDetails = () => {
                   {job.company[0]}
                 </div>
                 <div>
-                  <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
-                    {job.role}
-                  </h1>
+                  <h1 className="text-3xl font-extrabold text-slate-900 mb-2">{job.role}</h1>
                   <p className="text-lg text-blue-600 font-medium mb-4">
-                    {job.company} <span className="text-slate-400 mx-2">•</span>
-                    <span className="text-slate-600 font-normal">
-                      {job.location}
-                    </span>
+                    {job.company} <span className="text-slate-400 mx-2">•</span> 
+                    <span className="text-slate-600 font-normal">{job.location}</span>
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
@@ -116,12 +124,11 @@ const JobDetails = () => {
               <div className="flex flex-col gap-3 w-full md:w-auto shrink-0">
                 <a
                   href={
-                    job.applyLink.includes("@") &&
-                    !job.applyLink.startsWith("http")
+                    job.applyLink.includes("@") && !job.applyLink.startsWith("http")
                       ? `mailto:${job.applyLink}`
                       : job.applyLink.startsWith("http")
-                        ? job.applyLink
-                        : `https://${job.applyLink}`
+                      ? job.applyLink
+                      : `https://${job.applyLink}`
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -164,9 +171,7 @@ const JobDetails = () => {
                 <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">
                   Posted By Alumni
                 </p>
-                <p className="text-lg font-bold text-slate-900">
-                  {job.postedBy}
-                </p>
+                <p className="text-lg font-bold text-slate-900">{job.postedBy}</p>
                 <p className="text-sm text-slate-500">Class of {job.batch}</p>
               </div>
               {job.referralAvailable && (

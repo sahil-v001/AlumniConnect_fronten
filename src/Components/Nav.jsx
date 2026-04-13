@@ -1,16 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react"; // 1. Import useContext
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import NotificationDropdown from './NotificationDropDown'
+import NotificationDropdown from './NotificationDropDown';
+import { UserContext } from '../context/UserContext'; // 2. Import your UserContext
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem("token");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // 3. Extract user state and logout function from Context
+  const { user, logoutUser } = useContext(UserContext); 
+
+  // 4. Derive isLoggedIn dynamically from the Context state
+  const isLoggedIn = !!user; 
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+    logoutUser(); // 5. Let Context handle the state and localStorage wipe
     setIsDropdownOpen(false);
+    navigate("/login"); 
   };
 
   const toggleDropdown = () => {
@@ -74,40 +80,51 @@ const Navbar = () => {
             
             {/* 1. The Notification Bell */}
             <NotificationDropdown />
-          <div className="relative">
-            <button
-              onClick={toggleDropdown}
-              className="w-[40px] h-[40px] rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors focus:outline-none"
+
+            {/* 2. NEW: The Messages/Chat Button */}
+            <Link
+              to="/chat"
+              title="Messages"
+              className="w-[40px] h-[40px] rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 cursor-pointer hover:bg-blue-100 hover:border-blue-300 transition-colors focus:outline-none no-underline"
             >
-              <span className="text-[20px]">👤</span>
-            </button>
-            {isDropdownOpen && (
-              <div className="absolute right-0 top-[50px] w-[200px] bg-white shadow-xl rounded-lg border border-gray-100 overflow-hidden py-2 flex flex-col z-[1100]">
-                <Link
-                  to="/dashboard"
-                  className="px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 no-underline font-medium"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <span>📊</span> Dashboard
-                </Link>
+              <span className="text-[20px]">💬</span>
+            </Link>
 
-                <Link
-                  to="/profile"
-                  className="px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 no-underline font-medium"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <span>⚙️</span> My Profile
-                </Link>
+            {/* 3. The Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={toggleDropdown}
+                className="w-[40px] h-[40px] rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors focus:outline-none"
+              >
+                <span className="text-[20px]">👤</span>
+              </button>
+              {isDropdownOpen && (
+                <div className="absolute right-0 top-[50px] w-[200px] bg-white shadow-xl rounded-lg border border-gray-100 overflow-hidden py-2 flex flex-col z-[1100]">
+                  <Link
+                    to="/dashboard"
+                    className="px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 no-underline font-medium"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <span>📊</span> Dashboard
+                  </Link>
 
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer font-medium"
-                >
-                  <span>🚪</span> Logout
-                </button>
-              </div>
-            )}
-          </div>
+                  <Link
+                    to="/profile"
+                    className="px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 no-underline font-medium"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <span>⚙️</span> My Profile
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer font-medium"
+                  >
+                    <span>🚪</span> Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -33,8 +33,18 @@ const Events = () => {
         setUser(res.data);
         await fetchEvents(token);
       } catch (err) {
-        // If token is expired, clear it, but don't redirect. Let them see Guest View.
-        localStorage.removeItem("token");
+        // --- NEW 401 CATCH BLOCK ---
+        if (err.response && err.response.status === 401) {
+          toast.error("Session expired. Please log in again.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        } else {
+          // Fallback just in case it's a different error but token is faulty
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+        }
+        // ----------------------------
       } finally {
         setLoading(false);
       }
@@ -53,7 +63,16 @@ const Events = () => {
       );
       setEvents(res.data);
     } catch (error) {
-      toast.error("Failed to load events");
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        toast.error("Failed to load events");
+      }
+      // ----------------------------
     }
   };
 
@@ -68,7 +87,16 @@ const Events = () => {
       toast.success("Successfully registered for the event!");
       fetchEvents(token);
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to register");
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.error || "Failed to register");
+      }
+      // ----------------------------
     }
   };
 
@@ -83,7 +111,16 @@ const Events = () => {
       toast.success("Successfully unregistered from the event!");
       fetchEvents(token);
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to unregister");
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.error || "Failed to unregister");
+      }
+      // ----------------------------
     }
   };
 
@@ -99,7 +136,16 @@ const Events = () => {
       toast.success("Event cancelled successfully!");
       fetchEvents(token);
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to cancel event");
+      // --- NEW 401 CATCH BLOCK ---
+      if (error.response && error.response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.error || "Failed to cancel event");
+      }
+      // ----------------------------
     }
   };
 
