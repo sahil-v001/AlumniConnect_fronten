@@ -35,40 +35,49 @@ const ViewAgendaPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-16 px-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 md:py-16 px-4 sm:px-6 transition-colors duration-300 font-sans">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
+        
+        {/* Header Section */}
+        <div className="mb-10 md:mb-12 text-center">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-3 md:mb-4 tracking-tight transition-colors">
             Event Agenda
           </h1>
-          <p className="text-lg text-slate-600">
+          <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 transition-colors">
             The Grand Alumni Homecoming 2026
           </p>
-          <div className="mt-4 inline-block bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-bold">
-            Date: 15th January 2026
+          <div className="mt-4 inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm transition-colors">
+            Date: 15th October 2026
           </div>
         </div>
 
-        <div className="relative border-l-4 border-blue-200 ml-4 md:ml-10 space-y-12">
+        {/* Timeline Section */}
+        <div className="relative border-l-4 border-blue-200 dark:border-slate-700 ml-4 md:ml-10 space-y-8 md:space-y-12 transition-colors">
           {schedule.map((item, index) => (
-            <div key={index} className="relative pl-8 md:pl-12 group">
-              <div className="absolute -left-[14px] top-1 bg-white border-4 border-blue-600 w-6 h-6 rounded-full group-hover:scale-125 transition duration-300"></div>
+            <div key={index} className="relative pl-6 md:pl-12 group">
+              
+              {/* Timeline Dot */}
+              <div className="absolute -left-[14px] top-1.5 bg-white dark:bg-slate-900 border-4 border-blue-600 dark:border-blue-500 w-6 h-6 rounded-full group-hover:scale-125 transition-all duration-300 shadow-sm"></div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition cursor-default">
-                <span className="text-blue-600 font-bold text-sm tracking-wide block mb-1">
+              {/* Content Card */}
+              <div className="bg-white dark:bg-slate-800 p-5 md:p-6 rounded-2xl shadow-sm dark:shadow-slate-900/50 border border-slate-200 dark:border-slate-700 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 cursor-default">
+                <span className="text-blue-600 dark:text-blue-400 font-bold text-xs md:text-sm tracking-wider uppercase block mb-2 transition-colors">
                   {item.time}
                 </span>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-2 transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-slate-600">{item.desc}</p>
+                <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 transition-colors leading-relaxed">
+                  {item.desc}
+                </p>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-16 text-center">
-          <button className="bg-slate-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-slate-800 transition">
+        {/* Action Button */}
+        <div className="mt-12 md:mt-16 text-center">
+          <button className="w-full sm:w-auto bg-slate-900 dark:bg-blue-600 text-white px-8 py-3.5 md:py-3 rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-blue-500 transition-all duration-300 shadow-md hover:shadow-lg active:scale-[0.98]">
             Download PDF Schedule
           </button>
         </div>

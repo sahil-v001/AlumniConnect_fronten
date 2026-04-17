@@ -32,18 +32,15 @@ const EventDetails = () => {
         );
         setEvent(eventRes.data);
       } catch (error) {
-        // --- NEW 401 CATCH BLOCK ---
         if (error.response && error.response.status === 401) {
           toast.error("Session expired. Please log in again.");
           localStorage.removeItem("token");
           localStorage.removeItem("user"); 
           navigate("/login");
         } else {
-          // Fallback for other errors (like 404 or 500)
           toast.error("Failed to load event details");
           navigate("/events");
         }
-        // ----------------------------
       } finally {
         setLoading(false);
       }
@@ -53,8 +50,8 @@ const EventDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex justify-center items-center bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 dark:border-blue-400"></div>
       </div>
     );
   }
@@ -64,26 +61,28 @@ const EventDetails = () => {
   const currentUserId = user?._id || user?.id;
   const currentUserName = user?.fullName || user?.name;
 
-  const isHost =
-    event.proposedBy === currentUserName || event.user === currentUserId;
+  // Note: Using your updated ID-based logic from earlier would be best here if implemented in the backend:
+  // const isHost = event.hostId ? event.hostId === currentUserId : event.proposedBy === currentUserName;
+  const isHost = event.proposedBy === currentUserName || event.user === currentUserId;
 
   const isRegistered = event.attendees?.some((attendee) => {
-    const attendeeId =
-      typeof attendee === "object" ? attendee._id || attendee.id : attendee;
+    const attendeeId = typeof attendee === "object" ? attendee._id || attendee.id : attendee;
     return attendeeId === currentUserId;
   });
 
   const hasMeetingLink = event.meetingLink && event.meetingLink.trim() !== "";
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-900 p-8 text-white relative">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 transition-colors duration-300 font-sans">
+      <div className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-3xl shadow-sm dark:shadow-slate-900/50 border border-slate-200 dark:border-slate-700 overflow-hidden">
+        
+        {/* Banner Section */}
+        <div className="bg-slate-900 dark:bg-slate-950 p-6 sm:p-10 text-white relative">
           <span className="bg-blue-600 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4 inline-block">
             {event.format}
           </span>
-          <h1 className="text-4xl font-extrabold mb-2">{event.title}</h1>
-          <p className="text-slate-400">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">{event.title}</h1>
+          <p className="text-slate-400 text-sm sm:text-base">
             Hosted by{" "}
             <span className="text-white font-semibold">{event.proposedBy}</span>
           </p>
@@ -91,29 +90,34 @@ const EventDetails = () => {
           {isHost && (
             <button
               onClick={() => navigate(`/events/edit/${event._id}`)}
-              className="absolute top-8 right-8 bg-white text-slate-900 px-4 py-2 rounded-lg font-bold hover:bg-slate-200 transition"
+              className="mt-6 sm:mt-0 sm:absolute sm:top-8 sm:right-8 w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm"
             >
               Edit Event
             </button>
           )}
         </div>
 
-        <div className="p-8">
+        {/* Content Section */}
+        <div className="p-6 sm:p-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div className="col-span-2">
-              <h2 className="text-2xl font-bold text-slate-800 mb-4">
+            
+            {/* Description (Takes up 2 cols on Desktop, 1 on Mobile) */}
+            <div className="col-span-1 md:col-span-2">
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">
                 About this Event
               </h2>
-              <p className="text-slate-600 leading-relaxed whitespace-pre-line">
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line text-lg">
                 {event.description}
               </p>
             </div>
-            <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 h-fit">
-              <div className="mb-4">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+
+            {/* Info Side Panel */}
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 h-fit">
+              <div className="mb-5">
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
                   Date
                 </p>
-                <p className="font-semibold text-slate-800">
+                <p className="font-semibold text-slate-800 dark:text-slate-200">
                   {new Date(event.date).toLocaleDateString("en-US", {
                     weekday: "long",
                     year: "numeric",
@@ -122,11 +126,13 @@ const EventDetails = () => {
                   })}
                 </p>
               </div>
+              
               <div className="mb-6">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
                   Attendees
                 </p>
-                <p className="font-semibold text-slate-800">
+                <p className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <span className="text-blue-600 dark:text-blue-400">👥</span>
                   {event.attendees?.length || 0} Registered
                 </p>
               </div>
@@ -140,7 +146,7 @@ const EventDetails = () => {
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block w-full text-center bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md"
+                  className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
                 >
                   Join Meeting
                 </a>
@@ -148,58 +154,45 @@ const EventDetails = () => {
             </div>
           </div>
 
+          {/* Attendees Table */}
           {isHost && (
-            <div className="border-t border-slate-200 pt-8 mt-8">
-              <h2 className="text-2xl font-bold text-slate-800 mb-6">
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-8 mt-8">
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">
                 Registered Attendees
               </h2>
+              
               {!event.attendees || event.attendees.length === 0 ? (
-                <p className="text-slate-500 italic">
-                  No one has registered yet.
-                </p>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-2xl text-center border border-slate-100 dark:border-slate-700">
+                  <p className="text-slate-500 dark:text-slate-400 italic">
+                    No one has registered yet.
+                  </p>
+                </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
                     <thead>
-                      <tr className="bg-slate-100 text-slate-600 text-sm uppercase tracking-wider">
-                        <th className="p-4 font-semibold rounded-tl-lg">
-                          Name
-                        </th>
-                        <th className="p-4 font-semibold">Email</th>
-                        <th className="p-4 font-semibold">Branch</th>
-                        <th className="p-4 font-semibold rounded-tr-lg">
-                          Batch
-                        </th>
+                      <tr className="bg-slate-100 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                        <th className="p-4 font-bold">Name</th>
+                        <th className="p-4 font-bold">Email</th>
+                        <th className="p-4 font-bold">Branch</th>
+                        <th className="p-4 font-bold">Batch</th>
                       </tr>
                     </thead>
-                    <tbody className="text-slate-700">
+                    <tbody className="text-slate-700 dark:text-slate-300 divide-y divide-slate-100 dark:divide-slate-700/50">
                       {event.attendees.map((attendee) => {
-                        const id =
-                          typeof attendee === "object"
-                            ? attendee._id || attendee.id
-                            : attendee;
-                        const name =
-                          typeof attendee === "object"
-                            ? attendee.fullName || attendee.name
-                            : "Unknown User";
-                        const email =
-                          typeof attendee === "object" ? attendee.email : "N/A";
-                        const branch =
-                          typeof attendee === "object"
-                            ? attendee.branch
-                            : "N/A";
-                        const gradYear =
-                          typeof attendee === "object"
-                            ? attendee.graduationYear
-                            : "N/A";
+                        const id = typeof attendee === "object" ? attendee._id || attendee.id : attendee;
+                        const name = typeof attendee === "object" ? attendee.fullName || attendee.name : "Unknown User";
+                        const email = typeof attendee === "object" ? attendee.email : "N/A";
+                        const branch = typeof attendee === "object" ? attendee.branch : "N/A";
+                        const gradYear = typeof attendee === "object" ? attendee.graduationYear : "N/A";
 
                         return (
                           <tr
                             key={id}
-                            className="border-b border-slate-100 hover:bg-slate-50"
+                            className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                           >
-                            <td className="p-4 font-medium">{name}</td>
-                            <td className="p-4">{email}</td>
+                            <td className="p-4 font-semibold text-slate-900 dark:text-slate-200">{name}</td>
+                            <td className="p-4 text-slate-500 dark:text-slate-400">{email}</td>
                             <td className="p-4">{branch || "N/A"}</td>
                             <td className="p-4">{gradYear || "N/A"}</td>
                           </tr>

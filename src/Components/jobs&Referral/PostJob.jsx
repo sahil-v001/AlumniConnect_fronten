@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { useNavigate } from "react-router-dom"; // <-- Added this import
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import API from "../../config";
@@ -69,12 +69,12 @@ const ApiInput = ({
 
   return (
     <div className="relative mb-6" ref={wrapperRef}>
-      <label className="block text-sm font-bold text-slate-700 mb-2">
-        {label} <span className="text-red-500">*</span>
+      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors">
+        {label} <span className="text-red-500 dark:text-red-400">*</span>
       </label>
       <input
         type="text"
-        className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+        className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl text-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition-colors shadow-sm"
         placeholder={placeholder}
         value={value}
         onChange={(e) => {
@@ -83,19 +83,19 @@ const ApiInput = ({
         }}
         onFocus={() => value.length > 1 && setIsOpen(true)}
       />
-      {helpText && <p className="text-xs text-slate-400 mt-1">{helpText}</p>}
+      {helpText && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 transition-colors">{helpText}</p>}
 
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-10 w-full bg-white border border-slate-200 rounded-xl shadow-xl mt-1 overflow-hidden">
+        <div className="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl mt-1 overflow-hidden transition-colors">
           {isLoading ? (
-            <div className="p-3 text-xs text-slate-400 text-center">
+            <div className="p-3 text-xs text-slate-400 dark:text-slate-500 text-center">
               Fetching...
             </div>
           ) : (
             suggestions.map((item, idx) => (
               <div
                 key={idx}
-                className="px-4 py-3 hover:bg-blue-50 text-sm cursor-pointer text-slate-700 border-b border-slate-50 last:border-0"
+                className="px-4 py-3 hover:bg-blue-50 dark:hover:bg-slate-700 text-sm cursor-pointer text-slate-700 dark:text-slate-200 border-b border-slate-50 dark:border-slate-700/50 last:border-0 transition-colors"
                 onClick={() => {
                   onChange(item);
                   setIsOpen(false);
@@ -113,7 +113,7 @@ const ApiInput = ({
 
 const PostJob = ({ onBack }) => {
   const { user } = useContext(UserContext);
-  const navigate = useNavigate(); // <-- Initialize navigate for redirects
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     role: "",
@@ -154,9 +154,8 @@ const PostJob = ({ onBack }) => {
       if (!token) {
         toast.error("Session expired or missing. Please log in again.");
         setIsSubmitting(false);
-        navigate("/login"); // Force redirect if no token is found
+        navigate("/login");
         return; 
-
       }
 
       const payload = {
@@ -179,7 +178,6 @@ const PostJob = ({ onBack }) => {
     } catch (error) {
       console.error("🚨 FULL AXIOS ERROR:", error);
       
-      // --- NEW 401 CATCH BLOCK ---
       if (error.response && error.response.status === 401) {
         toast.error("Session expired. Please log in again.");
         localStorage.removeItem("token");
@@ -187,12 +185,10 @@ const PostJob = ({ onBack }) => {
         navigate("/login");
       } else if (error.response) {
         const errorMessage = error.response.data?.error || "Server returned an error";
-
         toast.error(`Error: ${errorMessage}`);
       } else {
         toast.error("Network Error: Could not connect to the server.");
       }
-      // ----------------------------
     } finally {
       setIsSubmitting(false);
     }
@@ -200,11 +196,11 @@ const PostJob = ({ onBack }) => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <div className="bg-white max-w-lg w-full p-10 rounded-3xl shadow-xl text-center border border-slate-100">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6 transition-colors duration-300">
+        <div className="bg-white dark:bg-slate-800 max-w-lg w-full p-10 rounded-3xl shadow-xl dark:shadow-slate-900/50 text-center border border-slate-100 dark:border-slate-700 transition-colors duration-300">
+          <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
             <svg
-              className="w-10 h-10 text-green-600"
+              className="w-10 h-10 text-emerald-600 dark:text-emerald-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -212,20 +208,20 @@ const PostJob = ({ onBack }) => {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
+                strokeWidth="3"
                 d="M5 13l4 4L19 7"
               ></path>
             </svg>
           </div>
-          <h2 className="text-3xl font-extrabold text-slate-900 mb-2">
+          <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">
             Job Posted!
           </h2>
-          <p className="text-slate-500 mb-8">
+          <p className="text-slate-500 dark:text-slate-400 mb-8">
             Your opportunity has been shared with the alumni network. Good luck!
           </p>
           <button
             onClick={onBack}
-            className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 transition-all w-full"
+            className="w-full bg-slate-900 dark:bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-blue-500 transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
           >
             Return to Board
           </button>
@@ -235,28 +231,32 @@ const PostJob = ({ onBack }) => {
   }
 
   return (
-    <div className="bg-slate-50 min-h-screen py-12 px-4 md:px-6">
+    <div className="bg-slate-50 dark:bg-slate-900 min-h-screen py-8 md:py-12 px-4 md:px-6 transition-colors duration-300 font-sans">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
+        
+        {/* Header Section */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900">
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Post a Job
             </h1>
-            <p className="text-slate-600 mt-1">
+            <p className="text-slate-600 dark:text-slate-400 mt-1">
               Share an opportunity with your network.
             </p>
           </div>
           <button
             onClick={onBack}
-            className="text-slate-500 hover:text-slate-900 font-medium"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold transition-colors w-full sm:w-auto text-left sm:text-right"
           >
-            Cancel
+            &larr; Cancel
           </button>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <form onSubmit={handleSubmit} className="p-8 md:p-10">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 border-b border-slate-100 pb-2">
+        {/* Form Container */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm dark:shadow-slate-900/50 border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors duration-300">
+          <form onSubmit={handleSubmit} className="p-6 md:p-10">
+            
+            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-6 border-b border-slate-100 dark:border-slate-700 pb-2 transition-colors">
               Role Details
             </h3>
 
@@ -271,13 +271,13 @@ const PostJob = ({ onBack }) => {
               />
 
               <div className="mb-6">
-                <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Company Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors">
+                  Company Name <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <input
                   required
                   type="text"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl text-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition-colors shadow-sm placeholder-slate-400 dark:placeholder-slate-500"
                   placeholder="e.g. Microsoft"
                   value={formData.company}
                   onChange={(e) =>
@@ -297,11 +297,11 @@ const PostJob = ({ onBack }) => {
               />
 
               <div className="mb-6">
-                <label className="block text-sm font-bold text-slate-700 mb-2">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors">
                   Job Type
                 </label>
                 <select
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl text-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition-colors shadow-sm"
                   value={formData.type}
                   onChange={(e) =>
                     setFormData({ ...formData, type: e.target.value })
@@ -316,25 +316,26 @@ const PostJob = ({ onBack }) => {
               </div>
             </div>
 
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 mt-4 border-b border-slate-100 pb-2">
+            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-6 mt-4 border-b border-slate-100 dark:border-slate-700 pb-2 transition-colors">
               Requirements
             </h3>
 
+            {/* Custom Tag Builder */}
             <div className="mb-6">
-              <label className="block text-sm font-bold text-slate-700 mb-2">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors">
                 Skills / Tags
               </label>
-              <div className="border border-slate-300 rounded-xl p-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all flex flex-wrap gap-2 min-h-[50px]">
+              <div className="border border-slate-300 dark:border-slate-600 rounded-xl p-2.5 bg-white dark:bg-slate-900 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-400 transition-all flex flex-wrap gap-2 min-h-[56px] shadow-sm">
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="bg-slate-100 text-slate-700 px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-2"
+                    className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 border border-slate-200 dark:border-slate-600"
                   >
                     {tag}
                     <button
                       type="button"
                       onClick={() => removeTag(tag)}
-                      className="text-slate-400 hover:text-red-500"
+                      className="text-slate-400 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 focus:outline-none"
                     >
                       ×
                     </button>
@@ -342,7 +343,7 @@ const PostJob = ({ onBack }) => {
                 ))}
                 <input
                   type="text"
-                  className="flex-1 min-w-[120px] outline-none text-sm px-2 py-1"
+                  className="flex-1 min-w-[140px] outline-none text-sm px-2 py-1 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   placeholder="Type skill & hit Enter"
                   value={currentTag}
                   onChange={(e) => setCurrentTag(e.target.value)}
@@ -352,13 +353,13 @@ const PostJob = ({ onBack }) => {
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                Job Description <span className="text-red-500">*</span>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors">
+                Job Description <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <textarea
                 required
-                rows="4"
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                rows="5"
+                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl text-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition-colors shadow-sm placeholder-slate-400 dark:placeholder-slate-500 resize-y"
                 placeholder="Briefly describe the role, responsibilities, and requirements..."
                 value={formData.description}
                 onChange={(e) =>
@@ -367,18 +368,18 @@ const PostJob = ({ onBack }) => {
               />
             </div>
 
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 mt-4 border-b border-slate-100 pb-2">
+            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-6 mt-4 border-b border-slate-100 dark:border-slate-700 pb-2 transition-colors">
               Application
             </h3>
 
             <div className="mb-6">
-              <label className="block text-sm font-bold text-slate-700 mb-2">
-                Application Link / Email <span className="text-red-500">*</span>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors">
+                Application Link / Email <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <input
                 required
                 type="text"
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl text-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition-colors shadow-sm placeholder-slate-400 dark:placeholder-slate-500"
                 placeholder="https://company.com/careers/job-id or email@company.com"
                 value={formData.applyLink}
                 onChange={(e) =>
@@ -387,16 +388,17 @@ const PostJob = ({ onBack }) => {
               />
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center justify-between mb-8">
-              <div>
-                <h4 className="font-bold text-blue-900 text-sm">
+            {/* Referral Toggle Panel */}
+            <div className="bg-blue-50/80 dark:bg-blue-900/20 p-5 rounded-2xl border border-blue-100 dark:border-blue-800/30 flex items-center justify-between mb-8 transition-colors">
+              <div className="pr-4">
+                <h4 className="font-bold text-blue-900 dark:text-blue-400 text-sm md:text-base">
                   Offer Referral?
                 </h4>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-xs md:text-sm text-blue-700 dark:text-blue-300/80 mt-1">
                   Check this if you are willing to refer candidates internally.
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
                 <input
                   type="checkbox"
                   className="sr-only peer"
@@ -408,17 +410,17 @@ const PostJob = ({ onBack }) => {
                     })
                   }
                 />
-                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-slate-300 dark:bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500"></div>
               </label>
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg shadow-blue-200 transition-all ${
+              className={`w-full py-4 rounded-xl text-white font-bold text-lg transition-all shadow-md active:scale-[0.98] ${
                 isSubmitting
-                  ? "bg-slate-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 hover:shadow-xl"
+                  ? "bg-slate-400 dark:bg-slate-600 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 hover:shadow-lg dark:hover:shadow-blue-900/20"
               }`}
             >
               {isSubmitting ? "Publishing..." : "Post Opportunity"}

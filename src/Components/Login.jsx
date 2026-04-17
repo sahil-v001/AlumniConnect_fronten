@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"
-import { useContext } from "react";
+import axios from "axios";
 import { UserContext } from "../context/UserContext";
 
 export const validatePassword = (password) => {
@@ -16,8 +15,9 @@ const Login = () => {
     password: "",
   });
   const navigate = useNavigate();
-  const {loginUser} = useContext(UserContext);
-const handleSubmit = (e) => {
+  const { loginUser } = useContext(UserContext);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     const finalData = { ...data };
 
@@ -30,12 +30,7 @@ const handleSubmit = (e) => {
       .post(import.meta.env.VITE_SERVER_DOMAIN + "/login", finalData)
       .then((res) => {
         toast.success("Authentication successful");
-        console.log(res.data);
-        
-        // We removed the raw localStorage calls from here.
-        // Now, we just pass BOTH the user data and the token to the context:
-        loginUser(res.data.user, res.data.token); 
-        
+        loginUser(res.data.user, res.data.token);
         navigate("/");
       })
       .catch((err) => {
@@ -45,33 +40,36 @@ const handleSubmit = (e) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-300 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
+        <div className="text-center">
+          <span className="text-5xl">🎓</span>
+        </div>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           Welcome Back
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
+        <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
           Don't have an account?{" "}
           <Link
             to="/signup"
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500"
           >
             Create one today
           </Link>
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-2xl sm:px-10 border border-slate-200">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
+        <div className="bg-white dark:bg-slate-800 py-8 px-6 shadow-xl dark:shadow-slate-900/50 sm:rounded-3xl sm:px-10 border border-slate-200 dark:border-slate-700 transition-colors duration-300">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Email address
               </label>
               <input
                 type="email"
                 required
-                className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl shadow-sm py-3 px-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
                 placeholder="you@example.com"
                 onChange={(e) => {
                   setdata({ ...data, email: e.target.value });
@@ -80,21 +78,23 @@ const handleSubmit = (e) => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-slate-700">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
                   Password
                 </label>
                 <div className="text-sm">
-                  <Link to="/updatepwd" className="font-medium text-blue-600 hover:text-blue-500">
-                  Forgot password?
+                  <Link
+                    to="/updatepwd"
+                    className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500"
+                  >
+                    Forgot password?
                   </Link>
-        
                 </div>
               </div>
               <input
                 type="password"
                 required
-                className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl shadow-sm py-3 px-4 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
                 onChange={(e) => setdata({ ...data, password: e.target.value })}
               />
             </div>
@@ -103,11 +103,11 @@ const handleSubmit = (e) => {
               <input
                 id="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900"
               />
               <label
                 htmlFor="remember-me"
-                className="ml-2 block text-sm text-slate-900"
+                className="ml-2 block text-sm font-medium text-slate-900 dark:text-slate-300"
               >
                 Remember me
               </label>
@@ -116,36 +116,12 @@ const handleSubmit = (e) => {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-slate-800 transition-all active:scale-[0.98]"
               >
                 Sign In
               </button>
             </div>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-slate-500">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <button className="w-full inline-flex justify-center py-2 px-4 border border-slate-300 rounded-lg shadow-sm bg-white text-sm font-medium text-slate-500 hover:bg-slate-50">
-                <img
-                  className="h-5 w-5"
-                  src="https://www.svgrepo.com/show/475656/google-color.svg"
-                  alt="Google"
-                />
-                <span className="ml-2">Sign in with Google</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

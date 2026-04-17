@@ -26,7 +26,6 @@ const Signup = () => {
   });
 
   const currentYear = new Date().getFullYear();
-  // Determine if the user is an Alumni based on what they type
   const isAlumni = formData.graduationYear && parseInt(formData.graduationYear) <= currentYear;
 
   useEffect(() => {
@@ -39,12 +38,10 @@ const Signup = () => {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // Handle Graduation Year changes and prevent cheating the OTP system
   const handleGradYearChange = (e) => {
     const newYear = e.target.value;
     const isNowAlumni = newYear && parseInt(newYear) <= currentYear;
 
-    // If they change from Student to Alumni (or vice versa), reset the email and OTP state
     if (isAlumni !== isNowAlumni) {
       setFormData({ 
         ...formData, 
@@ -68,7 +65,6 @@ const Signup = () => {
     }));
   };
 
-  // Helper function to get the correct email string based on user type
   const getFinalEmail = () => {
     return isAlumni ? formData.emailPrefix : `${formData.emailPrefix}${formData.emailDomain}`;
   };
@@ -76,13 +72,8 @@ const Signup = () => {
   const handleVerify = (e) => {
     e.preventDefault();
     if (isLoading || timer > 0) return;
-
-    if (!formData.collegeName) {
-      return toast.error("Please select your college first");
-    }
-    if (!formData.emailPrefix) {
-      return toast.error("Please enter your email");
-    }
+    if (!formData.collegeName) return toast.error("Please select your college first");
+    if (!formData.emailPrefix) return toast.error("Please enter your email");
 
     setIsLoading(true);
     const email = getFinalEmail();
@@ -95,26 +86,19 @@ const Signup = () => {
         setTimer(30);
       })
       .catch((err) => {
-        console.log(err);
         const errorMsg = err.response?.data?.message || err.response?.data || "Something went wrong";
         toast.error(typeof errorMsg === "object" ? JSON.stringify(errorMsg) : errorMsg);
         setIsOtpSent(false);
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .finally(() => setIsLoading(false));
   };
 
   const handleOtp = (e) => {
     e.preventDefault();
-    
-    if (!formData.otp.length) {
-      return toast.error("Enter valid otp");
-    }
+    if (!formData.otp.length) return toast.error("Enter valid otp");
 
     setIsLoading(true);
-    const email = getFinalEmail();
-    const payLoad = { email, otp: formData.otp };
+    const payLoad = { email: getFinalEmail(), otp: formData.otp };
 
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + "/verify-otp", payLoad)
@@ -122,28 +106,16 @@ const Signup = () => {
         setFormData((prev) => ({ ...prev, isVerified: true }));
         toast.success(res.data.message);
       })
-      .catch((err) => {
-        console.log(err);
-        const errorMsg = err.response?.data?.message || err.response?.data || "Verification failed";
-        toast.error(errorMsg);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .catch((err) => toast.error(err.response?.data?.message || "Verification failed"))
+      .finally(() => setIsLoading(false));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isLoading) return;
+    if (!formData.isVerified) return toast.error("Please verify your email first.");
 
-    if (!formData.isVerified) {
-      return toast.error("Please verify your email before creating an account.");
-    }
-
-    const finalData = {
-      ...formData,
-      email: getFinalEmail(),
-    };
+    const finalData = { ...formData, email: getFinalEmail() };
 
     if (!validatePassword(finalData.password)) {
       toast.error("Password must contain: 1 Uppercase, 1 Number, 1 Symbol");
@@ -161,199 +133,187 @@ const Signup = () => {
             navigate('/login');
           }
         })
-        .catch((err) => {
-          const errorMsg = err.response?.data?.msg || err.response?.data || "Signup failed";
-          toast.error(errorMsg);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+        .catch((err) => toast.error(err.response?.data?.msg || "Signup failed"))
+        .finally(() => setIsLoading(false));
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-xl">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 font-sans">
+      <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center">
+        <span className="text-5xl">🤝</span>
+        <h2 className="mt-4 text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           Join the Alumni Network
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer">
+          <Link to="/login" className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors">
             Sign in
           </Link>
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-2xl sm:px-10 border border-slate-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="bg-white dark:bg-slate-800 py-8 px-6 md:px-10 shadow-xl dark:shadow-slate-950/50 rounded-3xl border border-slate-200 dark:border-slate-700 transition-colors">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             
-            {/* 1. FULL NAME */}
+            {/* FULL NAME */}
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition-colors"
                 placeholder="John Doe"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
               />
             </div>
 
-            {/* 2. GRADUATION YEAR (Moved up so the UI can adapt early) */}
+            {/* GRADUATION YEAR */}
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Graduation Year <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
                 required
-                className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition-colors"
                 placeholder={`e.g. ${currentYear}`}
                 value={formData.graduationYear}
                 onChange={handleGradYearChange}
               />
-              {/* Visual Indicator of their Status */}
               {formData.graduationYear && (
-                <p className={`mt-2 text-xs font-bold ${isAlumni ? "text-purple-600" : "text-blue-600"}`}>
-                  {isAlumni 
-                    ? "🎓 Alumni Status: You may register with a personal email." 
-                    : "📚 Student Status: Verification requires your official college email."}
-                </p>
+                <div className={`mt-2 p-2 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border transition-colors ${
+                  isAlumni 
+                    ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-800/50" 
+                    : "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-800/50"
+                }`}>
+                  {isAlumni ? "🎓 Alumni Mode" : "📚 Student Mode: Official ID required"}
+                </div>
               )}
             </div>
 
-            {/* 3. COLLEGE SELECT */}
-            <div className={isOtpSent || formData.isVerified ? "opacity-50 pointer-events-none" : ""}>
+            {/* COLLEGE SELECT */}
+            <div className={`transition-opacity ${isOtpSent || formData.isVerified ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
               <CollegeSelect onSelect={handleCollegeSelect} />
             </div>
 
-            {/* 4. DYNAMIC EMAIL INPUT & OTP */}
+            {/* EMAIL SECTION */}
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 {isAlumni ? "Personal Email ID" : "College Email ID"} <span className="text-red-500">*</span>
               </label>
-              <div className="mt-1 flex flex-col sm:flex-row gap-2">
-                <div className="flex flex-1 rounded-md shadow-sm">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-1 items-stretch">
                   {isAlumni ? (
-                    // ALUMNI VIEW: Full Email Input
                     <input
                       type="email"
                       required
                       disabled={isOtpSent || formData.isVerified}
-                      placeholder="e.g. john.doe@gmail.com"
-                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-slate-100 disabled:text-slate-500"
+                      placeholder="john.doe@gmail.com"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white disabled:bg-slate-100 dark:disabled:bg-slate-800 transition-colors"
                       value={formData.emailPrefix}
                       onChange={(e) => setFormData({ ...formData, emailPrefix: e.target.value })}
                     />
                   ) : (
-                    // STUDENT VIEW: Split Email Input
-                    <>
+                    <div className="flex w-full">
                       <input
                         type="text"
                         required
                         disabled={isOtpSent || formData.isVerified}
                         placeholder="student_id"
-                        className="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-lg border border-slate-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-r-0 disabled:bg-slate-100 disabled:text-slate-500"
+                        className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-l-xl px-4 py-3 text-slate-900 dark:text-white border-r-0 disabled:bg-slate-100 dark:disabled:bg-slate-800 transition-colors"
                         value={formData.emailPrefix}
                         onChange={(e) => setFormData({ ...formData, emailPrefix: e.target.value })}
                       />
-                      <input
-                        type="text"
-                        readOnly
-                        placeholder="@college.edu"
-                        value={formData.emailDomain}
-                        className="flex-1 inline-flex items-center px-3 rounded-r-md border border-slate-300 bg-slate-50 text-slate-500 sm:text-sm cursor-not-allowed"
-                      />
-                    </>
+                      <div className="flex items-center px-4 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-r-xl text-slate-500 dark:text-slate-300 text-sm font-bold">
+                        {formData.emailDomain || "@domain.edu"}
+                      </div>
+                    </div>
                   )}
                 </div>
                 {!isOtpSent && !formData.isVerified && (
                   <button
-                    className={`px-6 py-2 rounded-lg text-white font-medium transition-colors whitespace-nowrap ${
-                      isLoading ? "bg-green-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 cursor-pointer"
-                    }`}
-                    disabled={isLoading || !formData.graduationYear}
                     onClick={handleVerify}
+                    disabled={isLoading || !formData.graduationYear}
+                    className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Sending..." : "Verify"}
+                    {isLoading ? "..." : "Verify"}
                   </button>
                 )}
               </div>
 
-              {/* OTP Section */}
+              {/* OTP SECTION */}
               {isOtpSent && !formData.isVerified && (
-                <div className="mt-4 animate-fade-in-down p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
-                    Enter Verification Code sent to {getFinalEmail()}
+                <div className="mt-4 p-5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
+                  <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 text-center">
+                    Verification Code sent to <span className="text-blue-600 dark:text-blue-400 lowercase">{getFinalEmail()}</span>
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <input
                       type="text"
-                      placeholder="Enter 6-digit OTP"
+                      placeholder="000000"
                       maxLength={6}
-                      className="block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm tracking-widest text-center font-bold"
+                      className="flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl py-3 text-center text-xl font-black tracking-[0.5em] text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
                       onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
                     />
                     <button
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-bold text-sm whitespace-nowrap cursor-pointer transition-colors"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95"
                       onClick={handleOtp}
                     >
-                      Confirm
+                      OK
                     </button>
                   </div>
-                  <p className="mt-3 text-xs text-slate-500 text-center">
-                    Didn't receive code?{" "}
+                  <div className="mt-4 text-center">
                     <button
-                      className="text-blue-600 hover:underline cursor-pointer font-bold disabled:text-slate-400 disabled:no-underline"
+                      className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline disabled:text-slate-400"
                       onClick={handleVerify}
                       disabled={timer > 0}
                     >
-                      {timer > 0 ? `Resend in ${timer}s` : "Resend Now"}
+                      {timer > 0 ? `Resend in ${timer}s` : "Resend Code"}
                     </button>
-                  </p>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* 5. PASSWORD */}
+            {/* PASSWORD */}
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Password <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
                 required
-                className="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl py-3 px-4 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
             </div>
 
-            <div>
+            {/* SUBMIT */}
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isLoading || !formData.isVerified}
-                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                className={`w-full py-4 rounded-xl font-black text-white shadow-xl transition-all active:scale-[0.98] ${
                   isLoading || !formData.isVerified 
-                    ? "bg-slate-400 cursor-not-allowed" 
-                    : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                    ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed opacity-50" 
+                    : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 shadow-blue-500/20"
                 }`}
               >
-                {isLoading ? "Creating Account..." : "Create Account"}
+                {isLoading ? "Creating Account..." : "Join Network"}
               </button>
               {!formData.isVerified && (
-                <p className="text-center text-xs text-slate-500 mt-2">
-                  * You must verify your email before submitting.
+                <p className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter mt-3">
+                  * Email verification required to finish signup
                 </p>
               )}
             </div>
           </form>
-
         </div>
       </div>
     </div>

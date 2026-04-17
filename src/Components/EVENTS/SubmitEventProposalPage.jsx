@@ -21,14 +21,12 @@ const SubmitEventProposalPage = () => {
     logistics: [],
   });
 
-  // --- NEW SECURITY REDIRECT ---
+  // --- SECURITY REDIRECT ---
   useEffect(() => {
-    // Wait until the user data is loaded from context
     if (user) {
       const currentYear = new Date().getFullYear();
       const isAlumni = user.graduationYear <= currentYear;
 
-      // If they are a student, kick them back to the events page
       if (!isAlumni) {
         toast.error("Access Denied: Only alumni can propose events.");
         navigate("/events");
@@ -59,7 +57,6 @@ const SubmitEventProposalPage = () => {
             logistics: event.logistics || [],
           });
         } catch (error) {
-          // --- NEW 401 CATCH BLOCK ---
           if (error.response && error.response.status === 401) {
             toast.error("Session expired. Please log in again.");
             localStorage.removeItem("token");
@@ -69,7 +66,6 @@ const SubmitEventProposalPage = () => {
             toast.error("Failed to load event for editing");
             navigate("/events");
           }
-          // ----------------------------
         }
       };
       fetchEvent();
@@ -121,7 +117,6 @@ const SubmitEventProposalPage = () => {
         navigate("/events");
       }
     } catch (error) {
-      // --- NEW 401 CATCH BLOCK ---
       if (error.response && error.response.status === 401) {
         toast.error("Session expired. Please log in again.");
         localStorage.removeItem("token");
@@ -130,26 +125,24 @@ const SubmitEventProposalPage = () => {
       } else {
         toast.error(error.response?.data?.error || "Failed to submit");
       }
-      // ----------------------------
     } finally {
       setLoading(false);
     }
   };
 
-  // If the user hasn't loaded yet (or if they are a student being redirected),
-  // show a blank screen/loading state so they don't see the form flash.
   if (!user || user.graduationYear > new Date().getFullYear()) {
-    return <div className="min-h-screen bg-slate-50"></div>;
+    return <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300"></div>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-slate-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 font-sans">
+      <div className="max-w-2xl mx-auto bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg dark:shadow-slate-900/50 border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+        
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-extrabold text-slate-900">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             {isEditing ? "Edit Event" : "Host an Event"}
           </h1>
-          <p className="mt-2 text-slate-600">
+          <p className="mt-2 text-slate-600 dark:text-slate-400">
             {isEditing
               ? "Update your event details below."
               : "Share your knowledge or bring the community together."}
@@ -157,8 +150,9 @@ const SubmitEventProposalPage = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
               Event Title *
             </label>
             <input
@@ -167,13 +161,14 @@ const SubmitEventProposalPage = () => {
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g., Intro to AI Ethics"
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors shadow-sm"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Date *
               </label>
               <input
@@ -181,32 +176,32 @@ const SubmitEventProposalPage = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors shadow-sm"
               />
             </div>
 
+            {/* Format */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Event Format *
               </label>
               <select
                 name="format"
                 value={formData.format}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors shadow-sm"
               >
                 <option value="Webinar (Online)">Webinar (Online)</option>
-                <option value="Workshop (In-person)">
-                  Workshop (In-person)
-                </option>
+                <option value="Workshop (In-person)">Workshop (In-person)</option>
                 <option value="Meetup/Networking">Meetup/Networking</option>
                 <option value="Reunion">Reunion</option>
               </select>
             </div>
           </div>
 
+          {/* Link */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
               Event/Meeting Link (Optional)
             </label>
             <input
@@ -215,52 +210,57 @@ const SubmitEventProposalPage = () => {
               value={formData.meetingLink}
               onChange={handleChange}
               placeholder="https://zoom.us/j/... or Maps link"
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors shadow-sm"
             />
           </div>
 
+          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
               Event Description & Agenda *
             </label>
             <textarea
-              rows="4"
+              rows="5"
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="What will happen during the event?"
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-colors shadow-sm resize-y"
             ></textarea>
           </div>
 
+          {/* Logistics Checkboxes */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
               Logistics Required
             </label>
-            <div className="flex gap-4 mt-2">
+            <div className="flex flex-wrap gap-4 mt-2 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
               {["Projector/AV", "Auditorium", "Zoom License"].map((item) => (
                 <label
                   key={item}
-                  className="flex items-center space-x-2 cursor-pointer"
+                  className="flex items-center space-x-2 cursor-pointer group"
                 >
                   <input
                     type="checkbox"
                     value={item}
                     checked={formData.logistics.includes(item)}
                     onChange={handleCheckboxChange}
-                    className="rounded text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded text-blue-600 dark:text-blue-500 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 cursor-pointer"
                   />
-                  <span className="text-slate-700 text-sm">{item}</span>
+                  <span className="text-slate-700 dark:text-slate-300 text-sm font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {item}
+                  </span>
                 </label>
               ))}
             </div>
           </div>
 
-          <div className="pt-4">
+          {/* Submit Button */}
+          <div className="pt-6">
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition shadow-lg disabled:opacity-50 cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98]"
             >
               {loading
                 ? "Saving..."

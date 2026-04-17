@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 export const UserContext = createContext();
 
@@ -9,14 +10,10 @@ export const UserProvider = ({ children }) => {
   const isTokenExpired = (token) => {
     if (!token) return true;
     try {
-      // A JWT has 3 parts. The payload is the 2nd part.
       const payloadBase64 = token.split('.')[1];
       const decodedJson = atob(payloadBase64);
       const decodedPayload = JSON.parse(decodedJson);
-      
-      // The 'exp' claim is in seconds. Date.now() is in milliseconds.
       const expirationTime = decodedPayload.exp * 1000;
-      
       return Date.now() > expirationTime;
     } catch (error) {
       return true;
@@ -35,7 +32,6 @@ export const UserProvider = ({ children }) => {
         setUser(JSON.parse(storedUser)); 
       }
     } else if (storedUser || storedToken) {
-      // Cleanup if only one piece of data exists
       logoutUser();
     }
   }, []);
@@ -59,7 +55,7 @@ export const UserProvider = ({ children }) => {
       connections: backendData.connections || [],
       notifications: backendData.notifications || [], 
       pendingConnections: backendData.pendingConnections || [],
-      vouchRequests: backendData.vouchRequests || [], // Added for completeness
+      vouchRequests: backendData.vouchRequests || [], 
     };
 
     setUser(safeUserData);
@@ -69,16 +65,32 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // --- NEW: REFRESH USER FUNCTION ---
+  // Call this after accepting/rejecting connections to pull fresh data
+  const refreshUser = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      // NOTE: Ensure you have an endpoint like app.get("/api/auth/me") in your backend
+      // that returns the current logged-in user's complete profile.
+      const res = await axios.get(`${import.meta.env.VITE_SERVER_DOMAIN}/api/auth/me`, {
+        headers: { "x-auth-token": token }
+      });
+      loginUser(res.data, token); // Update context and localStorage
+    } catch (error) {
+      console.error("Failed to refresh user data", error);
+    }
+  };
+
   const logoutUser = () => {
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token"); 
-    // This ensures that any component calling logoutUser() 
-    // resets the entire app state and storage.
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, loginUser, logoutUser }}>
+    <UserContext.Provider value={{ user, setUser, loginUser, logoutUser, refreshUser }}>
       {children}
     </UserContext.Provider>
   );

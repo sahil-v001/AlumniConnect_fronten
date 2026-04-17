@@ -1,98 +1,112 @@
-import { useEffect, useState } from "react";
-import { useSocketContext } from "../context/socketcontext"; 
-import { useNavigate } from "react-router-dom"; // <-- Added import
-import toast from "react-hot-toast"; // <-- Added import
+import { useState, useEffect } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const ChatSidebar = ({ selectedUser, setSelectedUser }) => {
   const [connections, setConnections] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { onlineUsers } = useSocketContext(); 
-  const navigate = useNavigate(); // <-- Initialize navigate
+  const [search, setSearch] = useState("");
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchConnections = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(import.meta.env.VITE_SERVER_DOMAIN+"/api/connect/my-connections", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "x-auth-token": token
-          }
+        const res = await axios.get(import.meta.env.VITE_SERVER_DOMAIN + "/api/connect/my-connections", {
+          headers: { "x-auth-token": token }
         });
-        
-        // --- NEW 401 CHECK (Native Fetch) ---
-        if (response.status === 401) {
-          toast.error("Session expired. Please log in again.");
+        setConnections(res.data);
+      } catch (err) {
+        if (err.response && err.response.status === 401) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           navigate("/login");
-          return; 
-        }
-        // ------------------------------------
-
-        const data = await response.json();
-        
-        if (response.ok) {
-          setConnections(data);
         } else {
-          console.error("Failed to fetch connections:", data.error);
+          toast.error("Failed to load connections");
         }
-      } catch (error) {
-        console.error("Error fetching connections:", error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-
     fetchConnections();
-  }, [navigate]); // Added navigate to dependency array
+  }, [navigate]);
+
+  const filteredConnections = connections.filter(conn => 
+    conn.fullName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="w-1/3 md:w-1/4 border-r h-full flex flex-col bg-white">
-      <div className="p-4 border-b font-bold text-lg text-gray-800">
-        My Connections
+    <div className={`flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 ${isExpanded ? 'w-full md:w-80 lg:w-96' : 'w-full md:w-20'}`}>
+      
+      {/* Header & Toggle */}
+      <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 transition-colors">
+        {isExpanded && <h2 className="font-extrabold text-slate-800 dark:text-white text-lg tracking-tight">Chats</h2>}
+        
+        {/* Hide the collapse button on mobile, it's unnecessary and breaks UX */}
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors mx-auto md:mx-0 hidden md:block focus:outline-none"
+          title={isExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
+        >
+          {isExpanded ? (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+          )}
+        </button>
       </div>
-      <div className="flex-1 overflow-y-auto">
-        {isLoading ? (
-          <div className="p-4 text-gray-500 text-center animate-pulse">Loading...</div>
-        ) : connections.length === 0 ? (
-          <div className="p-4 text-gray-500 text-center text-sm">
-            No connections yet. Connect with alumni to start chatting!
-          </div>
-        ) : (
-          connections.map((user) => {
-            const isOnline = onlineUsers?.includes(user._id);
-            const isSelected = selectedUser?._id === user._id;
 
-            return (
-              <div
-                key={user._id}
-                onClick={() => setSelectedUser(user)}
-                className={`p-4 border-b cursor-pointer flex items-center gap-3 transition-colors duration-200 ${
-                  isSelected ? "bg-blue-100 border-l-4 border-blue-600" : "hover:bg-gray-50"
-                }`}
-              >
-                <div className="relative">
-                  {user.profilePic ? (
-                    <img src={user.profilePic} alt={user.fullName} className="w-12 h-12 rounded-full object-cover border" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-xl text-white font-bold">
-                      {user.fullName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  {isOnline && (
-                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
-                  )}
-                </div>
-                
-                <div className="overflow-hidden">
-                  <div className="font-semibold text-gray-800 truncate">{user.fullName}</div>
-                  <div className="text-xs text-gray-500 truncate">{user.jobRole || user.collegeName}</div>
-                </div>
+      {/* Search Bar */}
+      {isExpanded && (
+        <div className="p-3 border-b border-slate-100 dark:border-slate-700/50 bg-white dark:bg-slate-800 transition-colors">
+          <input 
+            type="text" 
+            placeholder="Search connections..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm border-none rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
+          />
+        </div>
+      )}
+
+      {/* Connection List */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-white dark:bg-slate-800 transition-colors">
+        {loading ? (
+          <div className="p-4 text-center text-slate-400 dark:text-slate-500 text-sm animate-pulse">Loading...</div>
+        ) : filteredConnections.length === 0 ? (
+          <div className="p-4 text-center text-slate-400 dark:text-slate-500 text-sm">{isExpanded ? "No connections found." : "📭"}</div>
+        ) : (
+          filteredConnections.map((user) => (
+            <div 
+              key={user._id} 
+              onClick={() => setSelectedUser(user)}
+              className={`flex items-center gap-3 p-3 md:p-4 cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-700/30
+                ${selectedUser?._id === user._id 
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-600 dark:border-l-blue-500' 
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 border-l-4 border-l-transparent dark:border-l-transparent'
+                }
+              `}
+            >
+              {/* Avatar */}
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full shrink-0 flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white font-bold shadow-sm relative mx-auto md:mx-0 overflow-hidden">
+                {user.profilePic ? (
+                  <img src={user.profilePic} alt={user.fullName} className="w-full h-full object-cover" />
+                ) : (
+                  user.fullName.charAt(0).toUpperCase()
+                )}
               </div>
-            );
-          })
+              
+              {/* Full Name & Details */}
+              {isExpanded && (
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <h3 className="text-slate-900 dark:text-slate-100 font-bold truncate text-base">{user.fullName}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{user.jobRole || user.collegeName}</p>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
     </div>
