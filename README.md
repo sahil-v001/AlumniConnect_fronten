@@ -35,5 +35,3 @@ This repository contains the **frontend implementation**, built using modern tec
 - **PostCSS**
 
 ---
-
-## 📂 Project Structure
